@@ -7,7 +7,8 @@ A lightweight authentication api with Google OAuth integration using
 
 ### Prerequisites
 
-- bun 1.2.18 or later
+- Bun 1.2.18 or later
+- PostgreSQL database
 - Cloudflare Workers account
 - Google Cloud Platform account
 
@@ -45,6 +46,12 @@ bun install
 
 3. Environment Variables:
    - Add DATABASE_URL to your .env file because drizzle cannot read .dev.vars
+
+4. Databse Migration:
+   ```bash
+   bun run drizzle db:generate
+   bun run drizzle db:migrate
+   ```
 
 ### Run the Application
 
