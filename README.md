@@ -16,8 +16,8 @@ A lightweight authentication api with Google OAuth integration using
 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/yopem-auth.git
-cd yopem-auth
+git clone https://github.com/yopem/auth.git
+cd auth
 ```
 
 2. Install dependencies
