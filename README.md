@@ -49,8 +49,8 @@ bun install
 
 4. Databse Migration:
    ```bash
-   bun run drizzle db:generate
-   bun run drizzle db:migrate
+   bun run db:generate
+   bun run db:migrate
    ```
 
 ### Run the Application
