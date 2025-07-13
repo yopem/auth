@@ -1,5 +1,4 @@
 import { pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core"
-import { createInsertSchema } from "drizzle-zod"
 import { z } from "zod"
 
 import { createCustomId } from "@/lib/utils"
@@ -43,10 +42,4 @@ export const sessionTable = pgTable("sessions", {
   value: text("value").notNull(),
 })
 
-export const insertUserSchema = createInsertSchema(userTable)
-
-export type SelectUser = typeof userTable.$inferSelect
-export type SelectSession = typeof sessionTable.$inferSelect
 export type InsertUser = typeof userTable.$inferInsert
-
-export type UserRole = z.infer<typeof userRole>
