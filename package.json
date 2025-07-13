@@ -21,7 +21,7 @@
     "format:write": "prettier --write \"**/*.{ts,tsx,mts,js,jsx,mjs,json,md}\"",
     "lint": "eslint ./src",
     "lint:fix": "eslint ./src --fix",
-    "postinstall": "bun run cf-typegen",
+    "predev": "bun run cf-typegen",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
