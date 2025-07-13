@@ -19,7 +19,6 @@ coverage
 # Cloudflare
 .wrangler
 wrangler.jsonc
-worker-configuration.d.ts
 
 # Build Outputs
 out/
