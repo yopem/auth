@@ -1,0 +1,22 @@
+{
+  "extends": "@yopem/typescript-config/base",
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "lib": ["ESNext"],
+    "incremental": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "jsxImportSource": "hono/jsx",
+    "types": ["node", "./worker-configuration.d.ts"],
+    "paths": {
+      "@/*": ["./*"]
+    },
+    "baseUrl": "./src/"
+  },
+  "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}

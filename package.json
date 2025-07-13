@@ -1,0 +1,50 @@
+{
+  "name": "yopem-auth",
+  "private": true,
+  "type": "module",
+  "version": "0.0.1",
+  "license": "AGPL-3.0-or-later",
+  "scripts": {
+    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
+    "check": "lint && tsc --noEmit",
+    "db:check": "drizzle-kit check",
+    "db:drop": "drizzle-kit drop",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:pull": "drizzle-kit introspect",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "db:up": "drizzle-kit up",
+    "deploy": "wrangler deploy --minify",
+    "dev": "wrangler dev",
+    "format:check": "prettier --check \"**/*.{ts,tsx,mts,js,jsx,mjs,json,md}\"",
+    "format:write": "prettier --write \"**/*.{ts,tsx,mts,js,jsx,mjs,json,md}\"",
+    "lint": "eslint ./src",
+    "lint:fix": "eslint ./src --fix",
+    "postinstall": "bun run cf-typegen",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@openauthjs/openauth": "^0.4.3",
+    "drizzle-orm": "^0.44.2",
+    "drizzle-zod": "^0.8.2",
+    "nanoid": "^5.1.5",
+    "pg": "^8.16.3",
+    "transliteration": "^2.3.5",
+    "zod": "^4.0.5"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250712.0",
+    "@types/node": "^24.0.13",
+    "@yopem/eslint-config": "^0.2.3",
+    "@yopem/prettier-config": "^0.1.8",
+    "@yopem/typescript-config": "^0.2.1",
+    "drizzle-kit": "^0.31.4",
+    "eslint": "^9.31.0",
+    "lefthook": "^1.12.2",
+    "prettier": "^3.6.2",
+    "wrangler": "^4.24.3"
+  },
+  "prettier": "@yopem/prettier-config/react",
+  "packageManager": "bun@1.2.18"
+}
