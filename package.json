@@ -35,7 +35,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250712.0",
     "@types/node": "^24.0.13",
-    "@yopem/eslint-config": "^0.2.3",
+    "@yopem/eslint-config": "^0.3.0",
     "@yopem/prettier-config": "^0.1.8",
     "@yopem/typescript-config": "^0.2.1",
     "drizzle-kit": "^0.31.4",
