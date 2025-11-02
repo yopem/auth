@@ -40,7 +40,7 @@
     "@yopem/typescript-config": "^0.2.1",
     "drizzle-kit": "^0.31.4",
     "eslint": "^9.31.0",
-    "lefthook": "^1.12.2",
+    "lefthook": "^2.0.0",
     "prettier": "^3.6.2",
     "wrangler": "^4.24.3"
   },
