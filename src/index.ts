@@ -26,7 +26,7 @@ export default {
         google: GoogleProvider({
           clientID: process.env.GOOGLE_CLIENT_ID!,
           clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-          scopes: ["email", "profile"],
+          scopes: ["openid", "email", "profile"],
         }),
       },
       async success(ctx, value) {
