@@ -1,4 +1,7 @@
-import { type ExecutionContext } from "@cloudflare/workers-types"
+import {
+  type ExecutionContext,
+  type KVNamespace,
+} from "@cloudflare/workers-types"
 import { issuer } from "@openauthjs/openauth"
 import { GoogleProvider } from "@openauthjs/openauth/provider/google"
 import { CloudflareStorage } from "@openauthjs/openauth/storage/cloudflare"
@@ -6,12 +9,12 @@ import { CloudflareStorage } from "@openauthjs/openauth/storage/cloudflare"
 import { getUserByEmail, insertUser } from "@/lib/db/service"
 import { subjects } from "./subjects"
 
+interface Env {
+  "yopem-auth": KVNamespace
+}
+
 export default {
-  async fetch(
-    request: Request,
-    env: CloudflareBindings,
-    ctx: ExecutionContext,
-  ) {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext) {
     return issuer({
       storage: CloudflareStorage({
         namespace: env["yopem-auth"],

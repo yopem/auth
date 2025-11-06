@@ -26,23 +26,23 @@
   },
   "dependencies": {
     "@openauthjs/openauth": "^0.4.3",
-    "drizzle-orm": "^0.44.2",
-    "nanoid": "^5.1.5",
+    "drizzle-orm": "^0.44.7",
+    "nanoid": "^5.1.6",
     "pg": "^8.16.3",
     "transliteration": "^2.3.5",
-    "zod": "^4.0.5"
+    "zod": "^4.1.12"
   },
   "devDependencies": {
-    "@cloudflare/workers-types": "^4.20250712.0",
-    "@types/node": "^24.0.13",
-    "@yopem/eslint-config": "^0.2.3",
-    "@yopem/prettier-config": "^0.1.8",
+    "@cloudflare/workers-types": "^4.20251014.0",
+    "@types/node": "^24.10.0",
+    "@yopem/eslint-config": "^0.3.1",
+    "@yopem/prettier-config": "^0.1.9",
     "@yopem/typescript-config": "^0.2.1",
-    "drizzle-kit": "^0.31.4",
-    "eslint": "^9.31.0",
-    "lefthook": "^1.12.2",
+    "drizzle-kit": "^0.31.6",
+    "eslint": "^9.39.1",
+    "lefthook": "^2.0.2",
     "prettier": "^3.6.2",
-    "wrangler": "^4.24.3"
+    "wrangler": "^4.45.4"
   },
   "prettier": "@yopem/prettier-config/react",
   "packageManager": "bun@1.2.18"
