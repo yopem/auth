@@ -5,6 +5,7 @@ import {
 import { issuer } from "@openauthjs/openauth"
 import { GoogleProvider } from "@openauthjs/openauth/provider/google"
 import { CloudflareStorage } from "@openauthjs/openauth/storage/cloudflare"
+import type { StorageAdapter } from "@openauthjs/openauth/storage/storage"
 
 import { getUserByEmail, insertUser } from "@/lib/db/service"
 import { subjects } from "./subjects"
@@ -13,12 +14,30 @@ interface Env {
   "yopem-auth": KVNamespace
 }
 
+const wrapStorage = (storage: StorageAdapter): StorageAdapter => ({
+  ...storage,
+  // NOTE: this is a workaround for Cloudflare KV minimum TTL of 60 seconds
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async set(key: string[], value: any, expiry?: Date) {
+    if (expiry) {
+      const now = Date.now()
+      const ttl = Math.ceil((expiry.getTime() - now) / 1000)
+      if (ttl < 60) {
+        expiry = new Date(now + 60 * 1000)
+      }
+    }
+    return storage.set(key, value, expiry)
+  },
+})
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
     return issuer({
-      storage: CloudflareStorage({
-        namespace: env["yopem-auth"],
-      }),
+      storage: wrapStorage(
+        CloudflareStorage({
+          namespace: env["yopem-auth"],
+        }),
+      ),
       subjects,
       ttl: {
         access: 60 * 60 * 24 * 30,
