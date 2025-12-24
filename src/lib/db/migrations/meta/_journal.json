@@ -14,7 +14,14 @@
       "version": "7",
       "when": 1752429638069,
       "tag": "0001_youthful_sharon_ventura",
-         "breakpoints": true
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1766563732486,
+      "tag": "0002_left_magus",
+      "breakpoints": true
     }
   ]
 }
