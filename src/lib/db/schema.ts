@@ -1,4 +1,4 @@
-import { pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core"
+import { jsonb, pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core"
 import { z } from "zod"
 
 import { createCustomId } from "@/lib/utils"
@@ -40,6 +40,13 @@ export const accountTable = pgTable("accounts", {
 export const sessionTable = pgTable("sessions", {
   key: text("key").notNull().primaryKey(),
   value: text("value").notNull(),
+})
+
+export const authDataTable = pgTable("auth_data", {
+  id: text().primaryKey(),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  value: jsonb().$type<Record<string, any>>().notNull(),
+  expiry: timestamp(),
 })
 
 export type InsertUser = typeof userTable.$inferInsert

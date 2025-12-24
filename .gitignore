@@ -24,6 +24,7 @@ wrangler.jsonc
 out/
 build
 dist
+start
 
 # Debug
 npm-debug.log*

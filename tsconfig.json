@@ -11,12 +11,13 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "jsxImportSource": "hono/jsx",
-    "types": ["node", "./worker-configuration.d.ts"],
+    "types": ["node"],
+    "outDir": "./dist",
     "paths": {
       "@/*": ["./*"]
     },
     "baseUrl": "./src/"
   },
-  "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules"]
 }
