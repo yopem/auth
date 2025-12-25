@@ -21,7 +21,9 @@ export const userTable = pgTable("users", {
   about: text("about"),
   role: userRoleEnum("role").notNull().default("user"),
   createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  updatedAt: timestamp("updated_at")
+    .$onUpdate(() => new Date())
+    .notNull(),
 })
 
 export const accountTable = pgTable("accounts", {
@@ -34,7 +36,9 @@ export const accountTable = pgTable("accounts", {
     .notNull()
     .references(() => userTable.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
+  updatedAt: timestamp("updated_at")
+    .$onUpdate(() => new Date())
+    .notNull(),
 })
 
 export const sessionTable = pgTable("sessions", {
