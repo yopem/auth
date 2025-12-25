@@ -5,8 +5,8 @@ import {
 } from "@openauthjs/openauth/storage/storage"
 import { and, eq, gt, isNull, like, or } from "drizzle-orm"
 
-import { db } from "./lib/db"
-import { authDataTable } from "./lib/db/schema"
+import { db } from "./db"
+import { authDataTable } from "./db/schema"
 
 export function DrizzleAuthStorage(): StorageAdapter {
   return {
