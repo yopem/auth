@@ -42,7 +42,7 @@
     "@yopem/prettier-config": "^0.1.9",
     "@yopem/typescript-config": "^0.2.1",
     "drizzle-kit": "^0.31.8",
-    "eslint": "^9.39.2",
+    "eslint": "^10.0.0",
     "lefthook": "^2.0.12",
     "prettier": "^3.7.4"
   },
