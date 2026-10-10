@@ -17,7 +17,7 @@ interface Env {
 const wrapStorage = (storage: StorageAdapter): StorageAdapter => ({
   ...storage,
   // NOTE: this is a workaround for Cloudflare KV minimum TTL of 60 seconds
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  // oxlint-disable-next-line @typescript-eslint/no-explicit-any
   async set(key: string[], value: any, expiry?: Date) {
     if (expiry) {
       const now = Date.now()

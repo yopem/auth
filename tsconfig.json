@@ -14,8 +14,7 @@
     "types": ["node", "./worker-configuration.d.ts"],
     "paths": {
       "@/*": ["./*"]
-    },
-    "baseUrl": "./src/"
+    }
   },
   "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
