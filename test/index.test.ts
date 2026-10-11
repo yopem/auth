@@ -92,20 +92,31 @@ beforeAll(async () => {
       const spawner = yield* ChildProcessSpawner.ChildProcessSpawner
 
       return yield* spawner.exitCode(
-        ChildProcess.make("pnpm", ["run", "build"], {
-          env: {
-            ...process.env,
-            PATH: [dirname(process.execPath), "/usr/bin", "/bin"].join(
-              delimiter,
+        ChildProcess.make(
+          process.execPath,
+          [
+            fileURLToPath(
+              new URL("../node_modules/vite-plus/bin/vp", import.meta.url),
             ),
-            NODE_ENV: "production",
-            APP_NAME: "auth-build-test",
-            GOOGLE_CLIENT_SECRET: "build-test-google-secret-not-for-bundle",
-            CLOUDFLARE_API_TOKEN: "build-test-cloudflare-token-not-for-bundle",
+            "run",
+            "build",
+          ],
+          {
+            env: {
+              ...process.env,
+              PATH: [dirname(process.execPath), "/usr/bin", "/bin"].join(
+                delimiter,
+              ),
+              NODE_ENV: "production",
+              APP_NAME: "auth-build-test",
+              GOOGLE_CLIENT_SECRET: "build-test-google-secret-not-for-bundle",
+              CLOUDFLARE_API_TOKEN:
+                "build-test-cloudflare-token-not-for-bundle",
+            },
+            stdout: "inherit",
+            stderr: "inherit",
           },
-          stdout: "inherit",
-          stderr: "inherit",
-        }),
+        ),
       )
     }).pipe(Effect.provide(NodeServices.layer)),
   )

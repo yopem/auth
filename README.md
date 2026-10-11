@@ -101,13 +101,14 @@ vp run format:check
 vp test --reporter=default --reporter=json --outputFile=/tmp/yopem-auth-tests.json
 ```
 
-Tests run the build script without a global `vp` binary, then load
-`dist/worker.js` with local D1. They check JSON storage, exact expiry, prefix
-scans, pagination, user/account writes, rollback, OAuth discovery, persistent
-signing keys, and Google OAuth callbacks. Tests use local Google responses to
-check user creation and rejected unverified email. They also check concurrent
-requests. No Cloudflare credentials or `.env` file is needed for tests. Real
-Google sign-in needs OAuth credentials and a browser.
+Tests run the build script through the installed Vite+ binary, without global
+`vp` or `pnpm` binaries. They load `dist/worker.js` with local D1. They check
+JSON storage, exact expiry, prefix scans, pagination, user/account writes,
+rollback, OAuth discovery, persistent signing keys, and Google OAuth callbacks.
+Tests use local Google responses to check user creation and rejected unverified
+email. They also check concurrent requests. No Cloudflare credentials or `.env`
+file is needed for tests. Real Google sign-in needs OAuth credentials and a
+browser.
 
 ## Deployment
 

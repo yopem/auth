@@ -4,28 +4,11 @@ import effectConfig from "@yopem/oxlint-config/effect"
 import * as Config from "effect/Config"
 import * as ConfigProvider from "effect/ConfigProvider"
 import * as Effect from "effect/Effect"
+import * as FileSystem from "effect/FileSystem"
 import { fileURLToPath, URL } from "node:url"
 import { defineConfig } from "vite-plus"
 
-export default defineConfig(async ({ command }) => {
-  const appName =
-    command === "build"
-      ? await Effect.runPromise(
-          Config.NonEmptyString("APP_NAME").pipe(
-            Effect.provide(
-              ConfigProvider.layerAdd(
-                ConfigProvider.fromDotEnv({
-                  path: ".env",
-                  preserveEmptyStrings: true,
-                }),
-                { asPrimary: false },
-              ),
-            ),
-            Effect.provide(NodeFileSystem.layer),
-          ),
-        )
-      : undefined
-
+export default defineConfig(({ command }) => {
   return {
     resolve: {
       alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
@@ -40,8 +23,29 @@ export default defineConfig(async ({ command }) => {
         resolveId(id) {
           if (id.endsWith("native-worker-entry")) return "\0native-worker-entry"
         },
-        load(id) {
+        async load(id) {
           if (id === "\0native-worker-entry") {
+            const appName = await Effect.runPromise(
+              Effect.gen(function* () {
+                const fs = yield* FileSystem.FileSystem
+                const name = Config.NonEmptyString("APP_NAME")
+
+                if (!(yield* fs.exists(".env"))) return yield* name
+
+                return yield* name.pipe(
+                  Effect.provide(
+                    ConfigProvider.layerAdd(
+                      ConfigProvider.fromDotEnv({
+                        path: ".env",
+                        preserveEmptyStrings: true,
+                      }),
+                      { asPrimary: false },
+                    ),
+                  ),
+                )
+              }).pipe(Effect.provide(NodeFileSystem.layer)),
+            )
+
             return `
             import { WorkerEntrypoint } from "cloudflare:workers"
             import { makeWorkerBridge } from "alchemy/Cloudflare/Bridge"
