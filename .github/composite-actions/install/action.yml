@@ -1,5 +1,5 @@
 name: "Install"
-description: "Sets up Node.js and runs install"
+description: "Set up Vite+ and install locked dependencies"
 
 runs:
   using: composite
@@ -7,6 +7,11 @@ runs:
     - uses: oven-sh/setup-bun@v2
       with:
         bun-version: latest
+
+    - uses: voidzero-dev/setup-vp@v1.21.2
+      with:
+        node-version: "24"
+        run-install: false
 
     - name: Setup Git User
       shell: bash
@@ -16,4 +21,4 @@ runs:
 
     - name: Install Dependencies
       shell: bash
-      run: bun install
+      run: vp install --frozen-lockfile

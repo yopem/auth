@@ -1,14 +1,8 @@
-import { defineConfig, type Config } from "drizzle-kit"
-
-import { databaseUrl } from "@/lib/env"
+import { defineConfig } from "drizzle-kit"
 
 export default defineConfig({
-  dialect: "postgresql",
+  dialect: "sqlite",
   schema: "./src/lib/db/schema.ts",
   out: "./src/lib/db/migrations",
-  dbCredentials: {
-    url: databaseUrl!,
-  },
   verbose: true,
-  strict: true,
-}) satisfies Config
+})

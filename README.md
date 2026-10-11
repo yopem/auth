@@ -1,66 +1,114 @@
 # Yopem Auth
 
-A lightweight authentication api with Google OAuth integration using
-[OpenAuth](https://openauth.js.org).
+Authentication API with Google OAuth, [OpenAuth](https://openauth.js.org),
+Cloudflare Workers, and D1. [Alchemy v2](https://alchemy.run) manages Worker
+bindings, database migrations, and deployment. No Wrangler configuration or
+`.dev.vars` file is needed.
 
-## Getting Started
+Worker handlers, database queries, and validation use Effect. The database layer
+uses the
+[Effect v4 D1Client](https://effect.website/docs/v4/api/sql-d1/D1Client). Effect
+Schema validates configuration, Google profiles, subjects, and database records.
+Drizzle uses the same D1Client for typed Effect queries. It also defines tables
+and generates migrations. D1Client batches keep user and account writes atomic.
+OpenAuth uses a small Promise adapter at the library boundary.
 
-### Prerequisites
+## Setup
 
-- Bun 1.2.18 or later
-- PostgreSQL database
-- Cloudflare Workers account
-- Google Cloud Platform account
+Requirements: Vite+ (`vp`), Bun, a Cloudflare account, and Google OAuth
+credentials. The configured DNS zone and D1 database must be in the Cloudflare
+account that you use. All deployment settings and credentials come from `.env`.
 
-### Installation
-
-1. Clone the repository
-
-```bash
-git clone https://github.com/yopem/auth.git
-cd auth
+```sh
+vp install
+cp .env.example .env
 ```
 
-2. Install dependencies
+Fill `.env` with Google OAuth credentials, Cloudflare credentials, and the
+settings from `.env.example`. Alchemy loads and validates this file before it
+changes resources. Binding definitions stay in `alchemy.run.ts`.
 
-```bash
-bun install
+If you do not use an API token, configure or renew Alchemy login:
+
+```sh
+vp run cf:login
 ```
 
-### Configuration
+Alchemy uses its encrypted Cloudflare state store. No `ALCHEMY_PASSWORD` or
+local state key is needed. The first plan, development, or deployment command
+can ask to create a state-store Worker, Durable Object, and secret entries.
+Approve this only when you can change the Cloudflare account. This setup does
+not create those resources.
 
-1. Google Auth Setup:
-   - Create OAuth 2.0 credentials in Google Cloud Platform
-   - Configure the authorized redirect URI:
-     `https://your-domain/google/callback`
-   - Fill the `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in your `.dev.vars`
-     file
+Keep `.env`, `.alchemy/`, and Alchemy profile credentials private. Alchemy v1
+state is not converted to v2 state. Keep old state and its key for backups.
 
-2. Cloudflare Workers Setup:
-   - Create a KV database in Cloudflare Workers dashboard
-   - Rename `wrangler.jsonc.example` to `wrangler.jsonc`
-   - Fill in all required fields using the Wrangler CLI for managing secrets,
-     refer to the
-     [Cloudflare Workers Secrets documentation](https://developers.cloudflare.com/workers/configuration/secrets/#adding-secrets-to-your-project)
-     for more details.
+Set Google OAuth redirect URIs with the `/google/callback` path. Use the
+configured production domain and local origin from `.env`.
 
-3. Environment Variables:
-   - Add DATABASE_URL to your .env file because drizzle cannot read .dev.vars
+## Development
 
-4. Databse Migration:
-   ```bash
-   bun run db:generate
-   bun run db:migrate
-   ```
-
-### Run the Application
-
-```bash
-bun run dev
+```sh
+vp run dev
 ```
 
-### Deploy
+Alchemy starts Worker on the configured local port and applies SQLite migrations
+to local D1. Local D1 is separate from production. Development does not copy
+production records or attach the production domain.
 
-```bash
-bun run deploy
+Users, accounts, OpenAuth signing keys, and tokens use D1. Short token expiry
+times do not need the former KV TTL workaround. Expired auth records are
+excluded from reads and scans. Storage writes remove expired records.
+
+## Schema changes
+
+Edit `src/lib/db/schema.ts`, then generate a migration:
+
+```sh
+vp run db:generate
+vp run db:check
 ```
+
+Alchemy applies pending SQL migrations during development and deployment. Do not
+run Drizzle migrations separately.
+
+This change starts with empty D1 tables. It does not copy PostgreSQL users or KV
+records. Users must sign in again. Old databases and KV namespaces are not
+deleted. The target D1 database must not contain conflicting tables. Review its
+schema before the first deployment.
+
+## Validation
+
+```sh
+vp check
+vp run check
+vp run format:check
+vp test --reporter=default --reporter=json --outputFile=/tmp/yopem-auth-tests.json
+```
+
+Tests use local D1 and a bundled Worker. They check JSON storage, exact expiry,
+prefix scans, pagination, user/account writes, rollback, OAuth discovery,
+persistent signing keys, and Google OAuth callbacks. Tests use local Google
+responses to check user creation and rejected unverified email. They also check
+concurrent requests. No Cloudflare credentials or `.env` file is needed for
+tests. Real Google sign-in needs OAuth credentials and a browser.
+
+## Deployment
+
+```sh
+vp run deploy
+```
+
+Alchemy checks the configured D1 ID and name, adopts the database, applies
+pending migrations, and deploys the configured Worker and domain. D1 deletion is
+blocked by the Alchemy retention policy. Alchemy keeps the current D1
+jurisdiction and replication mode.
+
+Deployment changes live Worker code, secrets, domain bindings, and D1 tables.
+Check the Cloudflare account, D1 schema, and domain owner before deployment. If
+another Worker owns the configured domain, resolve the conflict before
+deployment.
+
+## License
+
+AGPL-3.0-or-later. See [LICENSE.md](./LICENSE.md).

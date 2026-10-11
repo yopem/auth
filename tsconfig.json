@@ -11,11 +11,11 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "jsxImportSource": "hono/jsx",
-    "types": ["node", "./worker-configuration.d.ts"],
+    "types": ["node", "@cloudflare/workers-types"],
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./src/*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts"],
+  "include": ["**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
 }

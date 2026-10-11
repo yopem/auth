@@ -1,49 +1,48 @@
 {
   "name": "yopem-auth",
-  "private": true,
-  "type": "module",
   "version": "0.0.1",
+  "private": true,
   "license": "AGPL-3.0-or-later",
+  "type": "module",
   "scripts": {
-    "cf-typegen": "wrangler types --env-interface CloudflareBindings",
-    "check": "lint && tsc --noEmit",
+    "cf:login": "alchemy profile edit --reconfigure Cloudflare",
     "db:check": "drizzle-kit check",
-    "db:drop": "drizzle-kit drop",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:pull": "drizzle-kit introspect",
-    "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio",
-    "db:up": "drizzle-kit up",
-    "deploy": "wrangler deploy --minify",
-    "dev": "wrangler dev",
-    "format:check": "vp fmt --check \"**/*.{ts,tsx,mts,js,jsx,mjs,json,md}\"",
-    "format:write": "vp fmt \"**/*.{ts,tsx,mts,js,jsx,mjs,json,md}\"",
-    "lint": "vp lint ./src",
-    "lint:fix": "vp lint ./src --fix",
-    "predev": "bun run cf-typegen",
+    "deploy": "alchemy deploy --stage prod",
+    "dev": "alchemy dev --stage dev",
+    "format:check": "vp fmt --check .",
+    "format:write": "vp fmt .",
+    "lint": "vp lint .",
+    "lint:fix": "vp lint . --fix",
+    "test": "vp test",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@effect/sql-d1": "^4.0.2",
     "@openauthjs/openauth": "^0.4.3",
-    "drizzle-orm": "^0.45.4",
+    "drizzle-orm": "1.0.0-rc.5-ab785fc",
+    "effect": "4.0.2",
     "nanoid": "^6.0.2",
-    "pg": "^8.23.1",
-    "transliteration": "^2.6.1",
-    "zod": "^4.6.5"
+    "transliteration": "^2.6.1"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261009.1",
+    "@distilled.cloud/cloudflare": "1.0.0-rc.13",
+    "@effect/platform-bun": "^4.0.2",
+    "@effect/platform-node": "^4.0.2",
     "@types/node": "^26.6.5",
+    "@yopem/oxlint-config": "^0.4.0",
     "@yopem/prettier-config": "^0.1.13",
     "@yopem/typescript-config": "^0.2.3",
-    "drizzle-kit": "^0.31.11",
+    "alchemy": "2.0.0-beta.81",
+    "drizzle-kit": "1.0.0-rc.5-ab785fc",
+    "miniflare": "4.20260708.1",
+    "typescript": "^7.0.2",
     "vite": "npm:@voidzero-dev/vite-plus-core@1.1.0",
-    "vite-plus": "1.1.0",
-    "wrangler": "^4.149.0"
+    "vite-plus": "1.1.0"
   },
-  "packageManager": "pnpm@12.11.2",
   "overrides": {
     "vite": "npm:@voidzero-dev/vite-plus-core@1.1.0"
-  }
+  },
+  "packageManager": "pnpm@12.11.2"
 }

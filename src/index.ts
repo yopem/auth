@@ -1,117 +1,31 @@
-import {
-  type ExecutionContext,
-  type KVNamespace,
-} from "@cloudflare/workers-types"
-import { issuer } from "@openauthjs/openauth"
-import { GoogleProvider } from "@openauthjs/openauth/provider/google"
-import { CloudflareStorage } from "@openauthjs/openauth/storage/cloudflare"
-import type { StorageAdapter } from "@openauthjs/openauth/storage/storage"
+import * as Cloudflare from "alchemy/Cloudflare"
+import * as Effect from "effect/Effect"
+import * as FetchHttpClient from "effect/http/FetchHttpClient"
+import * as HttpServerResponse from "effect/http/HttpServerResponse"
+import * as Layer from "effect/Layer"
 
-import { getUserByEmail, insertUser } from "@/lib/db/service"
-import { subjects } from "./subjects"
+import { createAuth, handleAuth } from "./lib/auth"
+import { createDatabase } from "./lib/db"
 
-interface Env {
-  "yopem-auth": KVNamespace
-}
+export const Constructor = Effect.gen(function* () {
+  const connection = yield* Cloudflare.D1.QueryDatabase(
+    Cloudflare.D1.Database("database"),
+  )
 
-const wrapStorage = (storage: StorageAdapter): StorageAdapter => ({
-  ...storage,
-  // NOTE: this is a workaround for Cloudflare KV minimum TTL of 60 seconds
-  // oxlint-disable-next-line @typescript-eslint/no-explicit-any
-  async set(key: string[], value: any, expiry?: Date) {
-    if (expiry) {
-      const now = Date.now()
-      const ttl = Math.ceil((expiry.getTime() - now) / 1000)
-      if (ttl < 60) {
-        expiry = new Date(now + 60 * 1000)
-      }
-    }
-    return storage.set(key, value, expiry)
-  },
-})
+  const auth = yield* Effect.cached(createAuth())
 
-export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext) {
-    return issuer({
-      storage: wrapStorage(
-        CloudflareStorage({
-          namespace: env["yopem-auth"],
-        }),
-      ),
-      subjects,
-      ttl: {
-        access: 60 * 60 * 24 * 30,
-        refresh: 60 * 60 * 24 * 365,
-        reuse: 61,
-      },
-      providers: {
-        google: GoogleProvider({
-          clientID: process.env.GOOGLE_CLIENT_ID!,
-          clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-          scopes: ["openid", "email", "profile"],
-        }),
-      },
-      async success(ctx, value) {
-        const access = value.tokenset.access
+  return {
+    fetch: Effect.gen(function* () {
+      const request = yield* Cloudflare.Request
+      const response = yield* handleAuth(auth, request)
 
-        interface GoogleUserInfo {
-          sub: string
-          name: string
-          given_name: string
-          picture: string
-          email: string
-          email_verified: boolean
-        }
+      return HttpServerResponse.fromWeb(response)
+    }).pipe(
+      Effect.provide(Layer.unwrap(Effect.map(connection.raw, createDatabase))),
+      Effect.provide(FetchHttpClient.layer),
+      Effect.orDie,
+    ),
+  }
+}).pipe(Effect.provide(Cloudflare.D1.QueryDatabaseBinding))
 
-        const response = await fetch(
-          "https://www.googleapis.com/oauth2/v3/userinfo",
-          {
-            headers: {
-              Authorization: `Bearer ${access}`,
-              Accept: "application/json",
-            },
-          },
-        )
-
-        if (!response.ok) {
-          throw new Error(
-            `Failed to fetch user info from Google: ${response.statusText}`,
-          )
-        }
-
-        const { sub, name, picture, email }: GoogleUserInfo =
-          await response.json()
-
-        const existingUser = await getUserByEmail(email)
-
-        if (!existingUser) {
-          const user = await insertUser({
-            email: email,
-            name: name,
-            image: picture,
-            provider: "google",
-            providerAccountId: sub,
-          })
-
-          return ctx.subject("user", {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            username: user.username,
-            image: user.image,
-            role: user.role,
-          })
-        }
-
-        return ctx.subject("user", {
-          id: existingUser.id,
-          email: existingUser.email,
-          name: existingUser.name,
-          username: existingUser.username,
-          image: existingUser.image,
-          role: existingUser.role,
-        })
-      },
-    }).fetch(request, env, ctx)
-  },
-}
+export default Cloudflare.Worker("auth", {}, Constructor)
