@@ -1,90 +1,31 @@
-import { issuer } from "@openauthjs/openauth"
-import { GoogleProvider } from "@openauthjs/openauth/provider/google"
+import * as Cloudflare from "alchemy/Cloudflare"
+import * as Effect from "effect/Effect"
+import * as FetchHttpClient from "effect/http/FetchHttpClient"
+import * as HttpServerResponse from "effect/http/HttpServerResponse"
+import * as Layer from "effect/Layer"
 
-import { getUserByEmail, insertUser } from "@/lib/db/service"
-import { googleClientId, googleClientSecret } from "@/lib/env"
-import { DrizzleAuthStorage } from "@/lib/storage"
-import { subjects } from "./subjects"
+import { createAuth, handleAuth } from "@/lib/auth"
+import { createDatabase } from "@/lib/db"
 
-export default issuer({
-  storage: DrizzleAuthStorage(),
-  subjects,
-  ttl: {
-    access: 60 * 60 * 24 * 30,
-    refresh: 60 * 60 * 24 * 365,
-    reuse: 61,
-  },
-  providers: {
-    google: GoogleProvider({
-      clientID: googleClientId!,
-      clientSecret: googleClientSecret!,
-      scopes: ["openid", "email", "profile"],
-    }),
-  },
-  async success(ctx, value) {
-    const access = value.tokenset.access
+export const Constructor = Effect.gen(function* () {
+  const connection = yield* Cloudflare.D1.QueryDatabase(
+    Cloudflare.D1.Database("database"),
+  )
 
-    interface GoogleUserInfo {
-      sub: string
-      name: string
-      given_name: string
-      picture: string
-      email: string
-      email_verified: boolean
-    }
+  const auth = yield* Effect.cached(createAuth())
 
-    const response = await fetch(
-      "https://www.googleapis.com/oauth2/v3/userinfo",
-      {
-        headers: {
-          Authorization: `Bearer ${access}`,
-          Accept: "application/json",
-        },
-      },
-    )
+  return {
+    fetch: Effect.gen(function* () {
+      const request = yield* Cloudflare.Request
+      const response = yield* handleAuth(auth, request)
 
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch user info from Google: ${response.statusText}`,
-      )
-    }
+      return HttpServerResponse.fromWeb(response)
+    }).pipe(
+      Effect.provide(Layer.unwrap(Effect.map(connection.raw, createDatabase))),
+      Effect.provide(FetchHttpClient.layer),
+      Effect.orDie,
+    ),
+  }
+}).pipe(Effect.provide(Cloudflare.D1.QueryDatabaseBinding))
 
-    const data = (await response.json()) as GoogleUserInfo
-
-    if (!data.sub || !data.email) {
-      throw new Error("Missing required user information from Google")
-    }
-
-    const { sub, name, picture, email }: GoogleUserInfo = data
-
-    const existingUser = await getUserByEmail(email)
-
-    if (!existingUser) {
-      const user = await insertUser({
-        email: email,
-        name: name,
-        image: picture,
-        provider: "google",
-        providerAccountId: sub,
-      })
-
-      return ctx.subject("user", {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        username: user.username,
-        image: user.image,
-        role: user.role,
-      })
-    }
-
-    return ctx.subject("user", {
-      id: existingUser.id,
-      email: existingUser.email,
-      name: existingUser.name,
-      username: existingUser.username,
-      image: existingUser.image,
-      role: existingUser.role,
-    })
-  },
-})
+export default Cloudflare.Worker("auth", {}, Constructor)

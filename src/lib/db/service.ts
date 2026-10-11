@@ -1,59 +1,88 @@
-import { eq } from "drizzle-orm"
+import * as D1Client from "@effect/sql-d1/D1Client"
+import * as Effect from "effect/Effect"
+import * as Schema from "effect/Schema"
 
-import { db } from "@/lib/db"
-import { slugifyUsername } from "@/lib/utils"
-import { accountTable, userTable, type InsertUser } from "./schema"
+import { Database } from "@/lib/db"
+import {
+  accountTable,
+  userRecord,
+  userTable,
+  type InsertUser,
+} from "@/lib/db/schema"
+import { createCustomId, slugifyUsername } from "@/lib/utils"
 
 interface InsertUserProps extends Omit<InsertUser, "username"> {
   provider: string
   providerAccountId: string
 }
 
-export const insertUser = async ({
+export function insertUser({
   email,
   name,
   image,
   provider,
   providerAccountId,
-}: InsertUserProps) => {
-  const user = await db
-    .insert(userTable)
-    .values({
-      email: email,
-      name: name,
-      username: await generateUniqueUsername(name!),
-      image: image,
-    })
-    .returning()
+}: InsertUserProps) {
+  return Effect.gen(function* () {
+    const db = yield* Database
+    const client = yield* D1Client.D1Client
+    const id = yield* Effect.sync(createCustomId)
+    const username = yield* generateUniqueUsername(name ?? email.split("@")[0])
 
-  await db.insert(accountTable).values({
-    provider,
-    providerAccountId,
-    userId: user[0].id,
+    const insert = db
+      .insert(userTable)
+      .values({ id, email, name, username, image })
+      .toSQL()
+
+    const account = db
+      .insert(accountTable)
+      .values({ provider, providerAccountId, userId: id })
+      .toSQL()
+
+    yield* client.batch([
+      client.unsafe(insert.sql, insert.params),
+      client.unsafe(account.sql, account.params),
+    ])
+
+    const user = yield* getUserByEmail(email)
+
+    if (!user) return yield* Effect.fail(new Error("Failed to create user"))
+
+    return user
   })
-
-  return user[0]
 }
 
-export const getUserByEmail = async (userEmail: string) => {
-  return await db.query.userTable.findFirst({
-    where: eq(userTable.email, userEmail),
+export function getUserByEmail(userEmail: string) {
+  return Effect.gen(function* () {
+    const db = yield* Database
+
+    const user = yield* db.query.users.findFirst({
+      where: { email: userEmail },
+    })
+
+    if (!user) return undefined
+
+    return yield* Schema.decodeUnknownEffect(Schema.toType(userRecord))(user)
   })
 }
 
-export const generateUniqueUsername = async (name: string): Promise<string> => {
-  const username = slugifyUsername(name)
-  let uniqueUsername = username
-  let suffix = 1
+export function generateUniqueUsername(name: string) {
+  return Effect.gen(function* () {
+    const db = yield* Database
+    const username = slugifyUsername(name) || "user"
+    let uniqueUsername = username
+    let suffix = 1
 
-  while (
-    await db.query.userTable.findFirst({
-      where: (user, { eq }) => eq(user.username, uniqueUsername),
-    })
-  ) {
-    suffix++
-    uniqueUsername = `${username}${suffix}`
-  }
+    while (
+      yield* db.query.users.findFirst({
+        columns: { id: true },
+        where: { username: uniqueUsername },
+      })
+    ) {
+      suffix++
+      uniqueUsername = `${username}${suffix}`
+    }
 
-  return uniqueUsername
+    return uniqueUsername
+  })
 }

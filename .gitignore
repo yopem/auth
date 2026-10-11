@@ -11,20 +11,17 @@ node_modules
 .env.development.local
 .env.test.local
 .env.production.local
-.dev.vars
 
 # Testing
 coverage
 
-# Cloudflare
-.wrangler
-wrangler.jsonc
+# Alchemy
+.alchemy
 
 # Build Outputs
 out/
 build
 dist
-start
 
 # Debug
 npm-debug.log*

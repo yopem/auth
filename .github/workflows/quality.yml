@@ -20,7 +20,7 @@ jobs:
         uses: ./.github/composite-actions/install
 
       - name: Run lint
-        run: bun run lint
+        run: vp run lint
 
   format-check:
     name: Format Check
@@ -32,8 +32,33 @@ jobs:
       - name: Install
         uses: ./.github/composite-actions/install
 
-      - name: Run lint
-        run: bun run format:check
+      - name: Check format
+        run: vp run format:check
+
+  test:
+    name: D1 and Worker Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+
+      - name: Install
+        uses: ./.github/composite-actions/install
+
+      - name: Check migrations
+        run: vp run db:check
+
+      - name: Run tests
+        run:
+          vp test --reporter=default --reporter=json
+          --outputFile=/tmp/yopem-auth-tests.json
+
+      - name: Save test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: yopem-auth-tests
+          path: /tmp/yopem-auth-tests.json
 
   typecheck:
     name: Type Check
@@ -46,4 +71,4 @@ jobs:
         uses: ./.github/composite-actions/install
 
       - name: Run typecheck
-        run: bun run typecheck
+        run: vp run typecheck

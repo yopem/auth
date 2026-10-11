@@ -1,15 +1,29 @@
-import { jsonb, pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core"
-import { z } from "zod"
+import type { StorageAdapter } from "@openauthjs/openauth/storage/storage"
+
+import { sql } from "drizzle-orm"
+import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core"
+import * as Schema from "effect/Schema"
 
 import { createCustomId } from "@/lib/utils"
 
 export const USER_ROLE = ["user", "member", "admin"] as const
 
-export const userRole = z.enum(USER_ROLE)
+export const userRole = Schema.Literals(USER_ROLE)
 
-export const userRoleEnum = pgEnum("user_role", USER_ROLE)
+export const userRecord = Schema.Struct({
+  id: Schema.String,
+  email: Schema.String,
+  name: Schema.NullOr(Schema.String),
+  username: Schema.String,
+  image: Schema.NullOr(Schema.String),
+  phoneNumber: Schema.NullOr(Schema.String),
+  about: Schema.NullOr(Schema.String),
+  role: userRole,
+  createdAt: Schema.NullOr(Schema.DateFromMillis),
+  updatedAt: Schema.NullOr(Schema.DateFromMillis),
+})
 
-export const userTable = pgTable("users", {
+export const userTable = sqliteTable("users", {
   id: text()
     .primaryKey()
     .$defaultFn(() => createCustomId()),
@@ -19,40 +33,39 @@ export const userTable = pgTable("users", {
   image: text("image"),
   phoneNumber: text("phone_number"),
   about: text("about"),
-  role: userRoleEnum("role").notNull().default("user"),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at")
-    .defaultNow()
-    .$onUpdate(() => new Date())
-    .notNull(),
+  role: text("role", { enum: USER_ROLE }).notNull().default("user"),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).default(
+    sql`(unixepoch() * 1000)`,
+  ),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).default(
+    sql`(unixepoch() * 1000)`,
+  ),
 })
 
-export const accountTable = pgTable("accounts", {
+export const accountTable = sqliteTable("accounts", {
   provider: text("provider").notNull(),
-  providerAccountId: text("provider_account_id")
-    .notNull()
-    .unique()
-    .primaryKey(),
+  providerAccountId: text("provider_account_id").notNull().primaryKey(),
   userId: text("user_id")
     .notNull()
     .references(() => userTable.id, { onDelete: "cascade" }),
-  createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at")
-    .defaultNow()
-    .$onUpdate(() => new Date())
-    .notNull(),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).default(
+    sql`(unixepoch() * 1000)`,
+  ),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).default(
+    sql`(unixepoch() * 1000)`,
+  ),
 })
 
-export const sessionTable = pgTable("sessions", {
-  key: text("key").notNull().primaryKey(),
-  value: text("value").notNull(),
-})
+export type AuthStorageValue = Parameters<StorageAdapter["set"]>[1]
 
-export const authDataTable = pgTable("auth_data", {
-  id: text().primaryKey(),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  value: jsonb().$type<Record<string, any>>().notNull(),
-  expiry: timestamp(),
-})
+export const authDataTable = sqliteTable(
+  "auth_data",
+  {
+    id: text("id").primaryKey(),
+    value: text("value", { mode: "json" }).$type<AuthStorageValue>().notNull(),
+    expiresAt: integer("expires_at", { mode: "timestamp_ms" }),
+  },
+  (table) => [index("auth_data_expires_at_idx").on(table.expiresAt)],
+)
 
 export type InsertUser = typeof userTable.$inferInsert

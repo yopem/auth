@@ -1,4 +1,4 @@
-/* eslint-disable no-useless-escape */
+/* oxlint-disable no-useless-escape */
 
 import { customAlphabet } from "nanoid"
 import { transliterate as tr } from "transliteration"

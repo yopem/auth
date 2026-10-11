@@ -11,13 +11,11 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "jsxImportSource": "hono/jsx",
-    "types": ["node"],
-    "outDir": "./dist",
+    "types": ["node", "@cloudflare/workers-types"],
     "paths": {
-      "@/*": ["./*"]
-    },
-    "baseUrl": "./src/"
+      "@/*": ["./src/*"]
+    }
   },
-  "include": ["src/**/*"],
+  "include": ["**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
 }
