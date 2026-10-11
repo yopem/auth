@@ -77,21 +77,37 @@ records. Users must sign in again. Old databases and KV namespaces are not
 deleted. The target D1 database must not contain conflicting tables. Review its
 schema before the first deployment.
 
+## Build
+
+```sh
+pnpm run build
+```
+
+This command uses the installed Vite+ binary. It writes the native Alchemy
+Worker bundle to `dist/worker.js`. Set `APP_NAME` in `.env` or the process
+environment. The bundle uses the `prod` stage. Google and Cloudflare credentials
+stay out of the bundle. This command does not deploy resources or apply
+migrations.
+
+Alchemy deployment still builds `src/index.ts` and registers the D1 binding.
+
 ## Validation
 
 ```sh
 vp check
-vp run check
+vp run lint
+vp run typecheck
 vp run format:check
 vp test --reporter=default --reporter=json --outputFile=/tmp/yopem-auth-tests.json
 ```
 
-Tests use local D1 and a bundled Worker. They check JSON storage, exact expiry,
-prefix scans, pagination, user/account writes, rollback, OAuth discovery,
-persistent signing keys, and Google OAuth callbacks. Tests use local Google
-responses to check user creation and rejected unverified email. They also check
-concurrent requests. No Cloudflare credentials or `.env` file is needed for
-tests. Real Google sign-in needs OAuth credentials and a browser.
+Tests run the build script without a global `vp` binary, then load
+`dist/worker.js` with local D1. They check JSON storage, exact expiry, prefix
+scans, pagination, user/account writes, rollback, OAuth discovery, persistent
+signing keys, and Google OAuth callbacks. Tests use local Google responses to
+check user creation and rejected unverified email. They also check concurrent
+requests. No Cloudflare credentials or `.env` file is needed for tests. Real
+Google sign-in needs OAuth credentials and a browser.
 
 ## Deployment
 

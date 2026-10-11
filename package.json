@@ -5,6 +5,7 @@
   "license": "AGPL-3.0-or-later",
   "type": "module",
   "scripts": {
+    "build": "vp build",
     "cf:login": "alchemy profile edit --reconfigure Cloudflare",
     "db:check": "drizzle-kit check",
     "db:generate": "drizzle-kit generate",

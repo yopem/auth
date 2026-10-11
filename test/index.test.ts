@@ -8,10 +8,12 @@ import * as Output from "alchemy/Output"
 import * as Stack from "alchemy/Stack"
 import * as State from "alchemy/State"
 import * as Effect from "effect/Effect"
+import * as ChildProcess from "effect/process/ChildProcess"
+import * as ChildProcessSpawner from "effect/process/ChildProcessSpawner"
 import { Miniflare, Response, type Request } from "miniflare"
 import { readFile } from "node:fs/promises"
+import { delimiter, dirname } from "node:path"
 import { fileURLToPath, URL } from "node:url"
-import { build } from "vite-plus"
 import { afterAll, beforeAll, expect, it } from "vite-plus/test"
 
 import { Constructor } from "@/index"
@@ -85,59 +87,44 @@ it("resolves fresh same-plan D1 binding without saved resource state", async () 
 })
 
 beforeAll(async () => {
-  const bundle = await build({
-    configFile: false,
-    resolve: {
-      conditions: ["browser"],
-      alias: { "@": fileURLToPath(new URL("../src", import.meta.url)) },
-    },
-    define: { "globalThis.__ALCHEMY_RUNTIME__": "true" },
-    plugins: [
-      {
-        name: "native-worker-entry",
-        resolveId(id) {
-          if (id.endsWith("native-worker-entry")) return "\0native-worker-entry"
-        },
-        load(id) {
-          if (id === "\0native-worker-entry") {
-            return `
-            import { WorkerEntrypoint } from "cloudflare:workers"
-            import { makeWorkerBridge } from "alchemy/Cloudflare/Bridge"
-            import entrypoint from "@/index"
-            export default makeWorkerBridge(WorkerEntrypoint, {
-              entrypoint,
-              stack: { name: "auth-test", stage: "test" },
-            })
-          `
-          }
-        },
-      },
-    ],
-    build: {
-      write: false,
-      lib: {
-        entry: "native-worker-entry",
-        formats: ["es"],
-      },
-      rolldownOptions: {
-        external: /^(node:|cloudflare:)/,
-        output: { codeSplitting: false },
-      },
-    },
-  })
+  const buildExit = await Effect.runPromise(
+    Effect.gen(function* () {
+      const spawner = yield* ChildProcessSpawner.ChildProcessSpawner
 
-  const output = Array.isArray(bundle) ? bundle[0] : bundle
+      return yield* spawner.exitCode(
+        ChildProcess.make("pnpm", ["run", "build"], {
+          env: {
+            ...process.env,
+            PATH: [dirname(process.execPath), "/usr/bin", "/bin"].join(
+              delimiter,
+            ),
+            NODE_ENV: "production",
+            APP_NAME: "auth-build-test",
+            GOOGLE_CLIENT_SECRET: "build-test-google-secret-not-for-bundle",
+            CLOUDFLARE_API_TOKEN: "build-test-cloudflare-token-not-for-bundle",
+          },
+          stdout: "inherit",
+          stderr: "inherit",
+        }),
+      )
+    }).pipe(Effect.provide(NodeServices.layer)),
+  )
 
-  if (!("output" in output)) throw new Error("Worker build output missing")
-  const chunk = output.output.find((entry) => entry.type === "chunk")
+  expect(buildExit).toBe(0)
+  const artifact = new URL("../dist/worker.js", import.meta.url)
+  const code = await readFile(artifact, "utf8")
 
-  if (chunk?.type !== "chunk") throw new Error("Worker bundle missing")
+  expect(code.length).toBeGreaterThan(1000)
+  expect(code).toContain("auth-build-test")
+  expect(code).toContain("prod")
+  expect(code).not.toContain("alchemy.run.ts")
+  expect(code).not.toContain("D1 state requires review before deployment")
+  expect(code).not.toContain("build-test-google-secret-not-for-bundle")
+  expect(code).not.toContain("build-test-cloudflare-token-not-for-bundle")
   runtime = new Miniflare({
     modules: true,
-    script: chunk.code,
-    scriptPath: fileURLToPath(
-      new URL("./native-worker-test.js", import.meta.url),
-    ),
+    script: code,
+    scriptPath: fileURLToPath(artifact),
     compatibilityDate: "2026-07-15",
     compatibilityFlags: ["nodejs_compat", "enable_nodejs_fs_module"],
     d1Databases: ["database"],
