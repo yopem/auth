@@ -35,7 +35,10 @@ const storage = D1AuthStorage(run)
 
 beforeAll(async () => {
   const migration = await readFile(
-    new URL("./db/migrations/20261010225048_d1/migration.sql", import.meta.url),
+    new URL(
+      "../../src/lib/db/migrations/20261010225048_d1/migration.sql",
+      import.meta.url,
+    ),
     "utf8",
   )
 

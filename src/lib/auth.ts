@@ -15,9 +15,8 @@ import { AsyncLocalStorage } from "node:async_hooks"
 import type { Database } from "@/lib/db"
 
 import { getUserByEmail, insertUser } from "@/lib/db/service"
+import { D1AuthStorage } from "@/lib/storage"
 import { subjects } from "@/subjects"
-
-import { D1AuthStorage } from "./storage"
 
 type AuthServices =
   | Database

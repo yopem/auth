@@ -12,7 +12,7 @@ import * as Option from "effect/Option"
 import * as Redacted from "effect/Redacted"
 import * as Schema from "effect/Schema"
 
-import { Constructor } from "./src/index"
+import { Constructor } from "@/index"
 
 const configSchema = Schema.Struct({
   APP_NAME: Schema.NonEmptyString,

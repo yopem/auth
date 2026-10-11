@@ -2,7 +2,7 @@ import { createSubjects } from "@openauthjs/openauth/subject"
 import * as Effect from "effect/Effect"
 import * as Schema from "effect/Schema"
 
-import { USER_ROLE, userRole } from "./lib/db/schema"
+import { USER_ROLE, userRole } from "@/lib/db/schema"
 
 export const subjects = createSubjects({
   user: Schema.toStandardSchemaV1(

@@ -87,7 +87,10 @@ it("resolves fresh same-plan D1 binding without saved resource state", async () 
 beforeAll(async () => {
   const bundle = await build({
     configFile: false,
-    resolve: { conditions: ["browser"] },
+    resolve: {
+      conditions: ["browser"],
+      alias: { "@": fileURLToPath(new URL("../src", import.meta.url)) },
+    },
     define: { "globalThis.__ALCHEMY_RUNTIME__": "true" },
     plugins: [
       {
@@ -100,7 +103,7 @@ beforeAll(async () => {
             return `
             import { WorkerEntrypoint } from "cloudflare:workers"
             import { makeWorkerBridge } from "alchemy/Cloudflare/Bridge"
-            import entrypoint from ${JSON.stringify(fileURLToPath(new URL("./index.ts", import.meta.url)))}
+            import entrypoint from "@/index"
             export default makeWorkerBridge(WorkerEntrypoint, {
               entrypoint,
               stack: { name: "auth-test", stage: "test" },
@@ -185,7 +188,7 @@ beforeAll(async () => {
 
   const migration = await readFile(
     new URL(
-      "./lib/db/migrations/20261010225048_d1/migration.sql",
+      "../src/lib/db/migrations/20261010225048_d1/migration.sql",
       import.meta.url,
     ),
     "utf8",

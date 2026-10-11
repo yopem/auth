@@ -11,8 +11,8 @@ import * as Option from "effect/Option"
 import * as Schema from "effect/Schema"
 import * as Stream from "effect/Stream"
 
-import { Database } from "./db"
-import { authDataTable, type AuthStorageValue } from "./db/schema"
+import { Database } from "@/lib/db"
+import { authDataTable, type AuthStorageValue } from "@/lib/db/schema"
 
 const jsonValue = Schema.fromJsonString(Schema.JsonObject)
 

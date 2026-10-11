@@ -2,10 +2,14 @@ import * as D1Client from "@effect/sql-d1/D1Client"
 import * as Effect from "effect/Effect"
 import * as Schema from "effect/Schema"
 
+import { Database } from "@/lib/db"
+import {
+  accountTable,
+  userRecord,
+  userTable,
+  type InsertUser,
+} from "@/lib/db/schema"
 import { createCustomId, slugifyUsername } from "@/lib/utils"
-
-import { Database } from "./index"
-import { accountTable, userRecord, userTable, type InsertUser } from "./schema"
 
 interface InsertUserProps extends Omit<InsertUser, "username"> {
   provider: string

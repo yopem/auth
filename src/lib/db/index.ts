@@ -6,7 +6,7 @@ import * as Drizzle from "drizzle-orm/effect-d1"
 import * as Context from "effect/Context"
 import * as Layer from "effect/Layer"
 
-import { accountTable, authDataTable, userTable } from "./schema"
+import { accountTable, authDataTable, userTable } from "@/lib/db/schema"
 
 const relations = defineRelations({
   users: userTable,

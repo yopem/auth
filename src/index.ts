@@ -4,8 +4,8 @@ import * as FetchHttpClient from "effect/http/FetchHttpClient"
 import * as HttpServerResponse from "effect/http/HttpServerResponse"
 import * as Layer from "effect/Layer"
 
-import { createAuth, handleAuth } from "./lib/auth"
-import { createDatabase } from "./lib/db"
+import { createAuth, handleAuth } from "@/lib/auth"
+import { createDatabase } from "@/lib/db"
 
 export const Constructor = Effect.gen(function* () {
   const connection = yield* Cloudflare.D1.QueryDatabase(
