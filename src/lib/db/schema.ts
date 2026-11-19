@@ -48,10 +48,11 @@ export const sessionTable = pgTable("sessions", {
   value: text("value").notNull(),
 })
 
+export const authDataValue = z.record(z.string(), z.json())
+
 export const authDataTable = pgTable("auth_data", {
   id: text().primaryKey(),
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  value: jsonb().$type<Record<string, any>>().notNull(),
+  value: jsonb().$type<z.infer<typeof authDataValue>>().notNull(),
   expiry: timestamp(),
 })
 

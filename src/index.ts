@@ -1,11 +1,19 @@
 import { issuer } from "@openauthjs/openauth"
 import { GoogleProvider } from "@openauthjs/openauth/provider/google"
+import { z } from "zod"
 
 import { getUserByEmail, insertUser } from "@/lib/db/service"
-import { googleClientId, googleClientSecret } from "@/lib/env"
+import { getGoogleCredentials } from "@/lib/env"
 import { DrizzleAuthStorage } from "@/lib/storage"
 
 import { subjects } from "./subjects"
+
+const googleUserInfo = z.object({
+  sub: z.string().min(1),
+  name: z.string(),
+  picture: z.string().nullish(),
+  email: z.string().min(1),
+})
 
 export default issuer({
   storage: DrizzleAuthStorage(),
@@ -17,22 +25,12 @@ export default issuer({
   },
   providers: {
     google: GoogleProvider({
-      clientID: googleClientId!,
-      clientSecret: googleClientSecret!,
+      ...getGoogleCredentials(),
       scopes: ["openid", "email", "profile"],
     }),
   },
   async success(ctx, value) {
     const access = value.tokenset.access
-
-    interface GoogleUserInfo {
-      sub: string
-      name: string
-      given_name: string
-      picture: string
-      email: string
-      email_verified: boolean
-    }
 
     const response = await fetch(
       "https://www.googleapis.com/oauth2/v3/userinfo",
@@ -50,13 +48,13 @@ export default issuer({
       )
     }
 
-    const data = (await response.json()) as GoogleUserInfo
+    const result = googleUserInfo.safeParse(await response.json())
 
-    if (!data.sub || !data.email) {
-      throw new Error("Missing required user information from Google")
+    if (!result.success) {
+      throw new Error("Invalid user information from Google")
     }
 
-    const { sub, name, picture, email }: GoogleUserInfo = data
+    const { sub, name, picture, email } = result.data
 
     const existingUser = await getUserByEmail(email)
 

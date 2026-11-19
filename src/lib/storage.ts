@@ -6,40 +6,54 @@ import {
 import { and, eq, gt, isNull, like, or } from "drizzle-orm"
 
 import { db } from "./db"
-import { authDataTable } from "./db/schema"
+import { authDataTable, authDataValue } from "./db/schema"
+
+type AuthDataInput = Record<
+  string,
+  (typeof authDataTable.$inferInsert)["value"][string] | undefined
+>
 
 export function DrizzleAuthStorage(): StorageAdapter {
   return {
     async get(key: string[]) {
       const id = joinKey(key)
+
       const entry = await db.query.authDataTable.findFirst({
         where: eq(authDataTable.id, id),
       })
+
       if (!entry) return undefined
 
       if (entry.expiry && Date.now() >= entry.expiry.getTime()) {
         await db.delete(authDataTable).where(eq(authDataTable.id, id))
+
         return undefined
       }
 
       return entry.value
     },
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async set(key: string[], value: Record<string, any>, expiry?: Date) {
+    async set(key: string[], value: AuthDataInput, expiry?: Date) {
       const id = joinKey(key)
+
+      const serialized = JSON.stringify(value)
+
+      const json: unknown =
+        serialized === undefined ? undefined : JSON.parse(serialized)
+
+      const data = authDataValue.parse(json)
 
       await db
         .insert(authDataTable)
         .values({
           id,
-          value,
+          value: data,
           expiry,
         })
         .onConflictDoUpdate({
           target: authDataTable.id,
           set: {
-            value,
+            value: data,
             expiry: expiry ?? null,
           },
         })
