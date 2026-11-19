@@ -1,16 +1,15 @@
 {
   "name": "yopem-auth",
-  "private": true,
-  "type": "module",
   "version": "0.0.1",
+  "private": true,
   "license": "AGPL-3.0-or-later",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "scripts": {
-    "check": "lint && tsc --noEmit",
     "db:check": "drizzle-kit check",
     "db:drop": "drizzle-kit drop",
     "db:generate": "drizzle-kit generate",
@@ -22,30 +21,27 @@
     "build": "bun build --compile ./src/index.ts --outfile start --minify",
     "dev": "bun run --hot src/index.ts",
     "start": "./start",
-    "format:check": "prettier --check \"**/*.{ts,tsx,mts,js,jsx,mjs,json,md}\"",
-    "format:write": "prettier --write \"**/*.{ts,tsx,mts,js,jsx,mjs,json,md}\"",
-    "lint": "eslint ./src",
-    "lint:fix": "eslint ./src --fix",
-    "typecheck": "tsc --noEmit"
+    "fmt:check": "bun fmt --check",
+    "fmt:write": "bun fmt",
+    "lint": "bun lint --type-aware",
+    "lint:fix": "bun lint --fix",
+    "typecheck": "bun check"
   },
   "dependencies": {
     "@openauthjs/openauth": "^0.4.3",
-    "drizzle-orm": "^0.45.1",
-    "nanoid": "^5.1.6",
-    "pg": "^8.16.3",
-    "transliteration": "^2.6.0",
-    "zod": "^4.2.1"
+    "drizzle-orm": "^0.45.4",
+    "nanoid": "^6.0.2",
+    "pg": "^8.23.1",
+    "transliteration": "^2.7.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@types/node": "^25.0.3",
-    "@yopem/eslint-config": "^0.3.1",
-    "@yopem/prettier-config": "^0.1.9",
-    "@yopem/typescript-config": "^0.2.1",
-    "drizzle-kit": "^0.31.8",
-    "eslint": "^9.39.2",
-    "lefthook": "^2.0.12",
-    "prettier": "^3.7.4"
+    "@types/node": "^26.6.6",
+    "@yopem/eslint-plugin": "^0.1.0",
+    "@yopem/typescript-config": "^0.2.5",
+    "drizzle-kit": "^0.31.11",
+    "eslint-plugin-oxfmt": "^0.33.0",
+    "lefthook": "^2.2.2"
   },
-  "prettier": "@yopem/prettier-config/react",
-  "packageManager": "bun@1.3.5"
+  "packageManager": "bun@1.4.4-cannary.1"
 }

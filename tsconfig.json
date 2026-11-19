@@ -14,9 +14,8 @@
     "types": ["node"],
     "outDir": "./dist",
     "paths": {
-      "@/*": ["./*"]
-    },
-    "baseUrl": "./src/"
+      "@/*": ["./src/*"]
+    }
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules"]
