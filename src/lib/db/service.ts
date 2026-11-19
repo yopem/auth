@@ -2,7 +2,8 @@ import { eq } from "drizzle-orm"
 
 import { db } from "@/lib/db"
 import { slugifyUsername } from "@/lib/utils"
-import { accountTable, userTable, type InsertUser } from "./schema"
+
+import { accountTable, type InsertUser, userTable } from "./schema"
 
 interface InsertUserProps extends Omit<InsertUser, "username"> {
   provider: string
