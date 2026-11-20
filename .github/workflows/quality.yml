@@ -20,7 +20,7 @@ jobs:
         uses: ./.github/composite-actions/install
 
       - name: Run lint
-        run: bun run lint
+        run: bun lint --type-aware
 
   format-check:
     name: Format Check
@@ -33,7 +33,7 @@ jobs:
         uses: ./.github/composite-actions/install
 
       - name: Run lint
-        run: bun run format:check
+        run: bun fmt --check
 
   typecheck:
     name: Type Check
@@ -46,4 +46,4 @@ jobs:
         uses: ./.github/composite-actions/install
 
       - name: Run typecheck
-        run: bun run typecheck
+        run: bun check
